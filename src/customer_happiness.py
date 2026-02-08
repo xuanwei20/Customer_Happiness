@@ -9,6 +9,23 @@ from xgboost import XGBClassifier
 import joblib
 
 
+# Feature descriptions
+feauture_desc = {
+    "X1": "My order was delivered on time ",
+    "X2": "Contents of my order were as expected",
+    "X3": "I ordered everything I wanted to order",
+    "X4": "I paid a good price for my order",
+    "X5": "I am satisfied with my courier",
+    "X6": "The app makes ordering easy for me",
+    "Y" : "Customer Sentiment (1=Happy, 0=Unhappy)"
+}
+
+# Get descriptive name for a feature
+def get_feature_description(feature):
+    if feature in feauture_desc:
+        return f"{feature}: {feauture_desc[feature]}"
+    
+
 # Load the dataset and split into train/test
 def load_data(file_path, target_col="Y", test_size=0.2, random_state=42):
     df = pd.read_csv(file_path)
@@ -36,18 +53,31 @@ def load_data(file_path, target_col="Y", test_size=0.2, random_state=42):
 # Explore categorical features
 def plot_counts(df, features):
     sns.set_style("whitegrid")
-    plt.figure(figsize=(14, 8))
+    plt.figure(figsize=(16, 8))
+    
     for i, f in enumerate(features, 1):
         plt.subplot(2, 3, i)
         sns.countplot(x=f, data=df)
-        plt.title(f"{f} counts")
-        # Add counts on top of bars
+        
+        desc = get_feature_description(f)
+        plt.title(f"{desc}", fontsize=12, fontweight='bold')
+        plt.xlabel("Rating (1-5)")
+        plt.ylabel("Count")
+
         for p in plt.gca().patches:
             height = p.get_height()
             if height > 0:
                 plt.gca().annotate(int(height), (p.get_x() + p.get_width() / 2, height),
-                                   ha='center', va='bottom')
+                                   ha='center', va='bottom', fontsize=9)
+                
+    plt.suptitle("Distribution of Customer Satisfaction Ratings", fontsize=16, fontweight='bold', y=1.02)
+
     plt.tight_layout()
+
+    fig_path = "results/figures/feature_counts.png"
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+    print(f"Saved figure to: {fig_path}")
+
     plt.show()
 
 # Heatmap of correlations
@@ -55,6 +85,23 @@ def plot_corr(df):
     plt.figure(figsize=(10, 8))
     sns.heatmap(df.corr(), annot=True, cmap="coolwarm", fmt=".2f")
     plt.title("Correlation Matrix")
+
+    footnote_text = "Feature Descriptions:\n"
+    for i in range(1, 7):
+        feature_code = f"X{i}"
+        if feature_code in feauture_desc:
+            footnote_text += f"{feature_code}: {feauture_desc[feature_code]}\n"
+    if "Y" in feauture_desc:
+        footnote_text += f"Y: {feauture_desc['Y']}"
+    
+    plt.figtext(0.02, 0.02, footnote_text, fontsize=7, 
+                bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgray", alpha=0.8),
+                verticalalignment='bottom', horizontalalignment='left')
+
+    fig_path = "results/figures/correlation_matrix.png"
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+    print(f"Saved figure to: {fig_path}")
+
     plt.show()
 
 # Feature vs target plots
@@ -69,6 +116,11 @@ def feature_vs_target(df, features, target="Y"):
         plt.ylabel("Percent")
         plt.xticks(rotation=0)
     plt.tight_layout()
+
+    fig_path = "results/figures/feature_vs_target.png"
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+    print(f"Saved figure to: {fig_path}")
+
     plt.show()
 
 
@@ -149,7 +201,11 @@ def test_models(X_train, X_test, y_train, y_test, features, models):
 
 
 # Save the best model and related info
-def save_best(results_df, X_train, y_train, models, file="best_model.pkl"):
+def save_best(results_df, X_train, y_train, models, 
+              model_file="results/best_model.pkl",
+              importance_file="results/summary/feature_importance.csv",
+              results_file="results/summary/model_results.csv"):
+    
     best = results_df.loc[results_df["test_acc"].idxmax()]
     
     print("\nBest model configuration:")
@@ -159,7 +215,7 @@ def save_best(results_df, X_train, y_train, models, file="best_model.pkl"):
     final_features = best["features"].split(", ")
     best_model.fit(X_train[final_features], y_train)
     
-    joblib.dump(best_model, file)
+    joblib.dump(best_model, model_file)
     
     # Save feature importance
     if hasattr(best_model, "feature_importances_"):
@@ -170,16 +226,16 @@ def save_best(results_df, X_train, y_train, models, file="best_model.pkl"):
         imp = [1/len(final_features)]*len(final_features)
     
     final_importance = pd.DataFrame({"feature": final_features, "importance": imp})
-    final_importance.to_csv("feature_importance.csv", index=False)
+    final_importance.to_csv(importance_file, index=False)
     
-    results_df.to_csv("model_results.csv", index=False)
+    results_df.to_csv(results_file, index=False)
     
     print("Saved model, results, and feature importance.")
 
 
 # Main workflow
 def main():
-    file_path = "ACME-HappinessSurvey2020.csv"
+    file_path = "data/ACME-HappinessSurvey2020.csv"
     df, X_train, X_test, y_train, y_test = load_data(file_path)
     
     features = ['X1', 'X2', 'X3', 'X4', 'X5', 'X6']
