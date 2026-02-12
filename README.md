@@ -19,8 +19,8 @@ Each feature is a rating from 1 (least positive) to 5 (most positive):
 | `X5` | I am satisfied with my courier |
 | `X6` | The app makes ordering easy for me |
 
-## 📁 Repository Structure (by importance)
-
+## Repository Structure (by importance)
+```
 Customer_Happiness/
 │
 ├── src/                            # Source code scripts (main logic for training, evaluation, predictions)
@@ -39,7 +39,7 @@ Customer_Happiness/
 ├── LICENSE                         # MIT License
 ├── README.md                       # Project documentation
 └── .gitignore                      # Ignored files (temporary files, OS artifacts, Python cache)
-
+```
 
 ## What This Code Does
 
