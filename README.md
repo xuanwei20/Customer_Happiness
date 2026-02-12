@@ -19,6 +19,28 @@ Each feature is a rating from 1 (least positive) to 5 (most positive):
 | `X5` | I am satisfied with my courier |
 | `X6` | The app makes ordering easy for me |
 
+## 📁 Repository Structure (by importance)
+
+Customer_Happiness/
+│
+├── src/                            # Source code scripts (main logic for training, evaluation, predictions)
+│   └── customer_happiness.py
+├── data/                           # Dataset for training/testing models
+│   └── survey_data.csv
+├── results/                        # Model outputs, metrics, and figures
+│   ├── best_model.pkl              # Saved best model
+│   ├── figures/                    # Visualizations and plots
+│   │   ├── correlation_matrix.png
+│   │   ├── feature_counts.png
+│   │   └── feature_vs_target.png
+│   └── summary/                    # Evaluation results and feature rankings
+│       ├── feature_importance.csv  # Feature ranking results
+│       └── model_results.csv       # Evaluation results (accuracy, ROC-AUC, etc.)
+├── LICENSE                         # MIT License
+├── README.md                       # Project documentation
+└── .gitignore                      # Ignored files (temporary files, OS artifacts, Python cache)
+
+
 ## What This Code Does
 
 The main script (`customer_happiness.py`) performs the following key steps:
